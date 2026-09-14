@@ -1,0 +1,200 @@
+name: Desktop Qt
+
+on:
+  workflow_dispatch:
+  workflow_call:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  desktop:
+    name: Qt 6.8.3 / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            host: linux
+            arch: linux_gcc_64
+            qt_dir: gcc_64
+          - os: windows-2022
+            host: windows
+            arch: win64_msvc2022_64
+            qt_dir: msvc2022_64
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1-mesa-dev libxkbcommon-dev libegl1-mesa-dev libzstd-dev
+      - name: Install Qt SDK
+        run: |
+          python -m pip install aqtinstall==3.3.0
+          python -m aqt install-qt ${{ matrix.host }} desktop 6.8.3 ${{ matrix.arch }} --outputdir "$RUNNER_TEMP/Qt"
+          echo "$RUNNER_TEMP/Qt/6.8.3/${{ matrix.qt_dir }}/bin" >> "$GITHUB_PATH"
+      - name: Configure
+        # Le générateur par défaut Windows trouve MSVC sans imposer Ninja ni
+        # modifier la session de l'utilisateur. Les presets locaux utilisent Ninja.
+        run: >-
+          cmake -S desktop -B desktop/build/ci
+          -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
+          "-DCMAKE_PREFIX_PATH=$RUNNER_TEMP/Qt/6.8.3/${{ matrix.qt_dir }}"
+      - name: Build
+        run: cmake --build desktop/build/ci --config Debug --parallel 2
+      - name: Check QML
+        run: cmake --build desktop/build/ci --config Debug --target all_qmllint
+      - name: Test real agent and QML startup
+        run: ctest --test-dir desktop/build/ci -C Debug --output-on-failure
+      - name: Check archive interoperability with Python
+        # Seulement sous Linux : la branche Kotlin demande le SDK Android et
+        # tourne dans l'autre workflow ; ici on ajoute la branche C++, qui a
+        # besoin du binaire tout juste construit.
+        if: runner.os == 'Linux'
+        run: |
+          python -m pip install uv
+          uv sync --all-packages
+          uv run python scripts/testing/test_archive_interop.py \
+            --skip-kotlin --cpp desktop/build/ci/bin/retrosave-archive-interop
+
+      # Sous Windows, zstd n'est pas fourni par le système : le noyau le compile
+      # depuis ses sources. Les archives produites par CETTE copie doivent rester
+      # identiques à celles de Python (invariant I5) — le vérifier sur Windows
+      # demanderait d'y porter le harnais, alors que la seule variable qui
+      # compte est la PROVENANCE de zstd. On la reproduit donc ici, où Python
+      # est déjà installé, en ne construisant que le binaire nécessaire.
+      - name: Check archives built with the vendored zstd
+        if: runner.os == 'Linux'
+        run: |
+          cmake -S desktop -B desktop/build/zstd-src \
+            -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DRSC_ZSTD_FROM_SOURCE=ON \
+            "-DCMAKE_PREFIX_PATH=$RUNNER_TEMP/Qt/6.8.3/${{ matrix.qt_dir }}"
+          cmake --build desktop/build/zstd-src --target retrosave-archive-interop --parallel 2
+          uv run python scripts/testing/test_archive_interop.py \
+            --skip-kotlin --cpp desktop/build/zstd-src/bin/retrosave-archive-interop
+
+      - name: Check S3 transfers against disposable MinIO
+        if: runner.os == 'Linux'
+        run: >-
+          uv run python scripts/testing/test_s3_interop.py
+          --cpp desktop/build/ci/bin/retrosave-s3-interop
+
+      # Les deux preuves qui comptent pour un joueur : les deux moteurs
+      # convergent à travers un vrai serveur, et l'application elle-même
+      # synchronise. Elles demandent PostgreSQL et MinIO, donc Linux et Docker.
+      - name: Check engine convergence against a disposable server
+        if: runner.os == 'Linux'
+        run: >-
+          uv run python scripts/testing/test_engine_interop.py
+          --cpp desktop/build/ci/bin/retrosave-engine-interop
+
+      - name: Check the real agent end to end
+        if: runner.os == 'Linux'
+        run: >-
+          uv run python scripts/testing/test_agent_e2e.py
+          --agent desktop/build/ci/bin/retrosave-agent
+          --engine desktop/build/ci/bin/retrosave-engine-interop
+
+      # Les tests d'adaptateur ne prouvent que la DÉCOUVERTE. Le 13/09/2026,
+      # ils étaient tous verts pendant que cinq connecteurs sur neuf étaient
+      # incapables de publier : la liste blanche des identifiants d'émulateur
+      # n'avait pas suivi. Ce banc va jusqu'à la version serveur, pour chacun.
+      - name: Check every shipped adapter reaches the server
+        if: runner.os == 'Linux'
+        run: >-
+          uv run python scripts/testing/test_adapters_e2e.py
+          --agent desktop/build/ci/bin/retrosave-agent
+
+      # ── Recette graphique (Spix) ──────────────────────────────────────
+      # Elle CLIQUE dans la vraie fenêtre : connexion, synchronisation, conflit,
+      # résolution, historique, restauration, avec l'agent réel et des services
+      # jetables. Linux seulement — elle demande Docker, et le canal de
+      # pilotage n'est compilé que par cette configuration dédiée, jamais par
+      # celle qui produit l'arbre livrable.
+      - name: Build the GUI test stack
+        if: runner.os == 'Linux'
+        env:
+          CMAKE: cmake
+          QT_PREFIX: ${{ runner.temp }}/Qt/6.8.3/gcc_64
+        run: ./scripts/testing/build_gui_test_stack.sh
+      - name: Prepare GUI diagnostics directory
+        if: runner.os == 'Linux'
+        run: mkdir -p "$RUNNER_TEMP/retrosave-tests"
+      - name: Drive the real window end to end
+        if: runner.os == 'Linux'
+        env:
+          # Le greffon de thème du bureau tenterait d'ouvrir un affichage X et
+          # l'application s'arrêterait, même hors écran.
+          QT_QPA_PLATFORMTHEME: ''
+          TMPDIR: ${{ runner.temp }}/retrosave-tests
+          RSC_FAILURE_DIR: ${{ runner.temp }}/retrosave-tests/diagnostics
+        run: >-
+          uv run python scripts/testing/test_gui_journey.py
+          --agent desktop/build/ci/bin/retrosave-agent
+          --gui desktop/build/gui-test/bin/retrosave-desktop
+          --engine desktop/build/ci/bin/retrosave-engine-interop
+      - name: Keep the failing GUI diagnostics
+        if: failure() && runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: gui-journey-failure
+          path: ${{ runner.temp }}/retrosave-tests/diagnostics/
+          if-no-files-found: ignore
+
+      - name: Check documentation links
+        run: python scripts/testing/check_docs.py
+
+      # — Arbre livrable (V1-0C) ————————————————————————————————
+      # On construit et on vérifie ce qui serait RÉELLEMENT distribué, pas
+      # l'arbre de compilation : ce sont deux choses différentes, et seule la
+      # première dit quelque chose sur l'installation d'un joueur.
+      - name: Build the delivered tree
+        run: >-
+          cmake -S desktop -B desktop/build/pkg
+          -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DRSC_DEPLOY_QT=ON
+          "-DCMAKE_PREFIX_PATH=$RUNNER_TEMP/Qt/6.8.3/${{ matrix.qt_dir }}"
+      - name: Assemble the delivered tree
+        run: |
+          cmake --build desktop/build/pkg --config Release --parallel 2
+          cmake --install desktop/build/pkg --config Release --prefix "$RUNNER_TEMP/rsc-tree"
+      - name: Check the delivered tree once moved
+        # Déplacer l'arbre avant de le lancer : c'est ce qui prouve qu'il ne
+        # dépend ni de son chemin de construction ni du Qt de la machine.
+        run: |
+          mv "$RUNNER_TEMP/rsc-tree" "$RUNNER_TEMP/rsc-moved"
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            # L'interface Windows est sans console et son test hors écran
+            # n'a pas encore été exécuté sur un vrai poste : on vérifie ici
+            # que les DLL Qt se résolvent, via l'agent qui, lui, a une console.
+            # --version du client construit aussi QApplication ; le contrôle
+            # QML graphique relève de la recette sur un vrai poste.
+            "$RUNNER_TEMP/rsc-moved/retrosave-agent.exe" --version
+            "$RUNNER_TEMP/rsc-moved/retrosave-desktop.exe" --version
+          else
+            QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software \
+              "$RUNNER_TEMP/rsc-moved/bin/retrosave-desktop" --smoke-test
+          fi
+      - name: Publish the delivered tree
+        uses: actions/upload-artifact@v4
+        with:
+          name: retrosave-desktop-tree-${{ matrix.os }}
+          path: ${{ runner.temp }}/rsc-moved/
+          retention-days: 14
+
+      - name: Keep test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-tests-${{ matrix.os }}
+          path: desktop/build/ci/Testing/Temporary/

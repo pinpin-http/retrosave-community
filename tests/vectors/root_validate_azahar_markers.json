@@ -1,0 +1,62 @@
+[
+  {
+    "name": "root_validate_azahar_primary_sdmc",
+    "input": {
+      "present_markers": ["sdmc"],
+      "markers_primary": ["sdmc"],
+      "markers_secondary": ["config", "nand", "sysdata", "gpu_drivers", "log"],
+      "markers_secondary_min": 2
+    },
+    "expected": true
+  },
+  {
+    "name": "root_validate_azahar_primary_is_case_insensitive",
+    "input": {
+      "present_markers": ["SDMC"],
+      "markers_primary": ["sdmc"],
+      "markers_secondary": ["config", "nand", "sysdata", "gpu_drivers", "log"],
+      "markers_secondary_min": 2
+    },
+    "expected": true
+  },
+  {
+    "name": "root_validate_azahar_two_secondary_with_config",
+    "input": {
+      "present_markers": ["config", "log"],
+      "markers_primary": ["sdmc"],
+      "markers_secondary": ["config", "nand", "sysdata", "gpu_drivers", "log"],
+      "markers_secondary_min": 2
+    },
+    "expected": true
+  },
+  {
+    "name": "root_validate_azahar_two_secondary_without_config",
+    "input": {
+      "present_markers": ["nand", "sysdata"],
+      "markers_primary": ["sdmc"],
+      "markers_secondary": ["config", "nand", "sysdata", "gpu_drivers", "log"],
+      "markers_secondary_min": 2
+    },
+    "expected": true
+  },
+  {
+    "name": "root_validate_azahar_one_secondary_is_insufficient",
+    "input": {
+      "present_markers": ["config"],
+      "markers_primary": ["sdmc"],
+      "markers_secondary": ["config", "nand", "sysdata", "gpu_drivers", "log"],
+      "markers_secondary_min": 2
+    },
+    "expected": false
+  },
+  {
+    "name": "root_validate_azahar_arbitrary_root",
+    "input": {
+      "present_markers": ["roms", "screenshots"],
+      "markers_primary": ["sdmc"],
+      "markers_secondary": ["config", "nand", "sysdata", "gpu_drivers", "log"],
+      "markers_secondary_min": 2
+    },
+    "expected": false
+  }
+]

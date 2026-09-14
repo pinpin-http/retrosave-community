@@ -1,0 +1,29 @@
+# PCSX2 — PlayStation 2. Les cartes mémoire sont des fichiers `.ps2` dans le
+# dossier `memcards` du dossier utilisateur.
+#
+# Les états de sauvegarde (`.p2s`) sont volontairement exclus : ce sont des
+# instantanés de RAM, ils pèsent des dizaines de mégaoctets et se périment au
+# moindre changement de version de l'émulateur.
+id = "pcsx2"
+name = "PCSX2 (PlayStation 2)"
+process_names = ["pcsx2-qt.exe", "pcsx2-qtx64-avx2.exe", "pcsx2-qt", "PCSX2.AppImage"]
+android_packages = []
+
+[roots]
+windows = ["%USERPROFILE%\\Documents\\PCSX2"]
+linux = ["~/.config/PCSX2"]
+
+[roots.validate]
+markers_primary = ["memcards"]
+markers_secondary = ["inis", "cache", "bios", "sstates"]
+markers_secondary_min = 2
+
+[discovery]
+unit_type = "file"
+pattern = "memcards/*.ps2"
+exclude = ["**/*.p2s", "**/.rsc-*"]
+max_depth = 2
+
+[identity]
+unit_key = "filename"
+game_key = "normalized_name"

@@ -1,0 +1,35 @@
+# Dolphin — GameCube. Les sauvegardes GameCube sont des fichiers `.gci`, un par
+# jeu, rangés dans la carte mémoire virtuelle du dossier utilisateur Dolphin.
+#
+# **Périmètre : GameCube seulement.** Les sauvegardes Wii vivent dans une
+# arborescence NAND (`Wii/title/…`) qui est une unité-DOSSIER : un manifeste ne
+# porte qu'un seul `unit_type`, elles demandent donc leur propre connecteur.
+#
+# I1 : le motif ne retient que `.gci`. Les images de disque (.iso, .rvz, .gcm)
+# sont hors du dossier de sauvegardes et resteraient de toute façon refusées par
+# la blocklist d'unité.
+id = "dolphin"
+name = "Dolphin (GameCube)"
+process_names = ["Dolphin.exe", "dolphin-emu", "dolphin-emu-qt2", "dolphin-emu-nogui"]
+android_packages = ["org.dolphinemu.dolphinemu"]
+
+[roots]
+windows = ["%USERPROFILE%\\Documents\\Dolphin Emulator"]
+linux = ["~/.local/share/dolphin-emu"]
+
+[roots.validate]
+markers_primary = ["GC"]
+markers_secondary = ["Wii", "Config", "Cache", "Load"]
+markers_secondary_min = 2
+
+[discovery]
+unit_type = "file"
+# `GC/<région>/Card A/<jeu>.gci` : la profondeur couvre les deux emplacements
+# de carte sans ouvrir tout le dossier utilisateur.
+pattern = "GC/**/*.gci"
+exclude = ["**/.rsc-*"]
+max_depth = 5
+
+[identity]
+unit_key = "filename"
+game_key = "normalized_name"

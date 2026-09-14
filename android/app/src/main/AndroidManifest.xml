@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- M7 §6 : seulement pour l'avertissement de début de partie. Demandée
+         quand l'utilisateur active la détection, pas au premier lancement. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- M7 §5 étage 2 : opt-in explicite. Le service ne tourne que pendant une
+         partie et s'arrête à sa fermeture ; jamais de service résident. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!--
+      M7 §5 : permission spéciale, accordée dans Réglages > Accès aux données
+      d'usage, jamais par une demande à l'exécution. `tools:ignore` parce que
+      lint la signale comme réservée au système : elle ne l'est pas, elle est
+      simplement accordée ailleurs.
+
+      Elle peut être retirée à tout moment sans que l'app en soit notifiée, d'où
+      la vérification à chaque passe plutôt qu'une fois au démarrage.
+    -->
+    <uses-permission
+        android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
+
+    <!-- Visibilité ciblée, uniquement pour l'indicateur informatif des 3 adaptateurs. -->
+    <queries>
+        <package android:name="org.ppsspp.ppsspp" />
+        <package android:name="org.ppsspp.ppssppgold" />
+        <package android:name="me.magnum.melondualds" />
+        <package android:name="me.magnum.melonds" />
+        <package android:name="org.azahar_emu.azahar" />
+        <package android:name="io.github.lime3ds.android" />
+    </queries>
+
+    <!--
+      Aucune permission de stockage globale n'est déclarée : l'accès aux
+      sauvegardes passe exclusivement par une URI SAF choisie explicitement.
+
+      La sauvegarde Android automatique est aussi désactivée : elle ne doit
+      jamais recopier involontairement des tokens ou l'état local RetroSave.
+    -->
+    <application
+        android:name="com.retrosave.RetroSaveApp"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/ic_launcher"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.RetroSave">
+        <activity
+            android:name="com.retrosave.MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <!-- AD-34 : service de premier plan court, le temps d'une passe lancée
+             depuis la tuile. Pas de service résident, pas de surveillance. -->
+        <service
+            android:name="com.retrosave.data.session.SyncPassService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+        <!-- La tuile doit être exportée et protégée par BIND_QUICK_SETTINGS_TILE :
+             c'est le système qui s'y lie, et cette permission garantit que lui
+             seul le peut. -->
+        <service
+            android:name="com.retrosave.data.session.SyncTileService"
+            android:exported="true"
+            android:icon="@android:drawable/stat_notify_sync"
+            android:label="@string/tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+    </application>
+
+</manifest>

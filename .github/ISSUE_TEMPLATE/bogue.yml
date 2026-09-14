@@ -1,0 +1,49 @@
+name: Signaler un bogue
+description: Quelque chose ne fonctionne pas comme annoncé
+labels: ["bogue"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci. **Si le problème concerne la sécurité ou une perte de données
+        potentielle, n'ouvrez pas d'issue publique** : voir
+        [SECURITY.md](../blob/main/SECURITY.md).
+
+        Rappel d'état : **Windows ne synchronise pas encore** (le noyau n'y est
+        pas construit), et il n'existe pas d'installeur. Inutile de le signaler.
+  - type: textarea
+    id: attendu
+    attributes:
+      label: Ce que vous attendiez, et ce qui s'est passé
+      placeholder: |
+        J'attendais que ma sauvegarde PPSSPP apparaisse sur mon second PC.
+        Elle n'est jamais arrivée, et le rapport indique « 0 reçue ».
+    validations:
+      required: true
+  - type: textarea
+    id: reproduire
+    attributes:
+      label: Comment le reproduire
+      description: Les étapes, dans l'ordre. C'est ce qui fait gagner le plus de temps.
+    validations:
+      required: true
+  - type: input
+    id: systeme
+    attributes:
+      label: Système et version
+      placeholder: "Arch Linux, Qt 6.8.3, RetroSave 0.1.0"
+    validations:
+      required: true
+  - type: input
+    id: emulateur
+    attributes:
+      label: Émulateur et connecteur concernés
+      placeholder: "PPSSPP 1.17, connecteur ppsspp"
+  - type: textarea
+    id: rapport
+    attributes:
+      label: Le rapport de la dernière passe
+      description: >
+        Visible dans l'écran Synchronisation. **Retirez l'adresse de votre
+        serveur et votre jeton** avant de coller quoi que ce soit.
+      render: text

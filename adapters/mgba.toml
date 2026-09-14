@@ -1,0 +1,28 @@
+# mGBA — Game Boy Advance et Game Boy. Comme melonDS, la sauvegarde est un
+# fichier `.sav` posé à côté de la ROM, sauf si l'utilisateur a configuré un
+# dossier dédié. C'est donc lui qui désigne le dossier, et nous n'y lisons que
+# les `.sav` : les ROMs voisines ne sont jamais ouvertes (invariant I1).
+#
+# Les états (`.ss0` à `.ss9`) sont exclus : ce sont des instantanés de RAM liés
+# à une version précise de l'émulateur, pas une progression de jeu.
+id = "mgba"
+name = "mGBA (Game Boy Advance)"
+process_names = ["mGBA.exe", "mgba-qt", "mgba", "mgba-sdl"]
+# Le paquet Android n'est pas renseigné : il n'a pas été constaté sur un
+# appareil réel, et un identifiant inventé ferait échouer la détection de
+# session en silence.
+android_packages = []
+
+[roots]
+windows = []
+linux = []
+
+[discovery]
+unit_type = "file"
+pattern = "**/*.sav"
+exclude = ["**/*.ss[0-9]", "**/.rsc-*"]
+max_depth = 4
+
+[identity]
+unit_key = "filename"
+game_key = "normalized_name"

@@ -1,0 +1,82 @@
+[
+  {
+    "name": "a_newer_head_is_worth_warning_about",
+    "input": {
+      "emulator": "melonds",
+      "remote": [{"emulator": "melonds", "unit_key": "zelda.sav", "head_version": 3, "state": "active"}],
+      "local": [{"emulator": "melonds", "unit_key": "zelda.sav", "last_synced_version": 1}]
+    },
+    "expected": ["zelda.sav"]
+  },
+  {
+    "name": "an_up_to_date_unit_says_nothing",
+    "input": {
+      "emulator": "melonds",
+      "remote": [{"emulator": "melonds", "unit_key": "zelda.sav", "head_version": 2, "state": "active"}],
+      "local": [{"emulator": "melonds", "unit_key": "zelda.sav", "last_synced_version": 2}]
+    },
+    "expected": []
+  },
+  {
+    "name": "a_local_unit_ahead_of_the_cloud_says_nothing",
+    "input": {
+      "emulator": "melonds",
+      "remote": [{"emulator": "melonds", "unit_key": "zelda.sav", "head_version": 1, "state": "active"}],
+      "local": [{"emulator": "melonds", "unit_key": "zelda.sav", "last_synced_version": 4}]
+    },
+    "expected": []
+  },
+  {
+    "name": "a_unit_absent_locally_is_never_reported_as_behind",
+    "input": {
+      "emulator": "melonds",
+      "remote": [{"emulator": "melonds", "unit_key": "zelda.sav", "head_version": 3, "state": "active"}],
+      "local": []
+    },
+    "expected": []
+  },
+  {
+    "name": "other_adapters_are_not_the_business_of_this_session",
+    "input": {
+      "emulator": "melonds",
+      "remote": [{"emulator": "ppsspp", "unit_key": "ULUS10041", "head_version": 5, "state": "active"}],
+      "local": [{"emulator": "ppsspp", "unit_key": "ULUS10041", "last_synced_version": 1}]
+    },
+    "expected": []
+  },
+  {
+    "name": "a_unit_marked_missing_server_side_is_not_a_reason_to_warn",
+    "input": {
+      "emulator": "melonds",
+      "remote": [{"emulator": "melonds", "unit_key": "zelda.sav", "head_version": 3, "state": "missing"}],
+      "local": [{"emulator": "melonds", "unit_key": "zelda.sav", "last_synced_version": 1}]
+    },
+    "expected": []
+  },
+  {
+    "name": "several_units_behind_are_reported_sorted",
+    "input": {
+      "emulator": "melonds",
+      "remote": [
+        {"emulator": "melonds", "unit_key": "zelda.sav", "head_version": 3, "state": "active"},
+        {"emulator": "melonds", "unit_key": "alpha.sav", "head_version": 2, "state": "active"},
+        {"emulator": "melonds", "unit_key": "steady.sav", "head_version": 7, "state": "active"}
+      ],
+      "local": [
+        {"emulator": "melonds", "unit_key": "zelda.sav", "last_synced_version": 1},
+        {"emulator": "melonds", "unit_key": "alpha.sav", "last_synced_version": 1},
+        {"emulator": "melonds", "unit_key": "steady.sav", "last_synced_version": 7}
+      ]
+    },
+    "expected": ["alpha.sav", "zelda.sav"]
+  },
+  {
+    "name": "a_unit_never_synced_locally_is_behind_from_the_first_version",
+    "input": {
+      "emulator": "melonds",
+      "remote": [{"emulator": "melonds", "unit_key": "fresh.sav", "head_version": 1, "state": "active"}],
+      "local": [{"emulator": "melonds", "unit_key": "fresh.sav", "last_synced_version": 0}]
+    },
+    "expected": ["fresh.sav"]
+  }
+]

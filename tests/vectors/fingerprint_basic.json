@@ -1,0 +1,62 @@
+[
+  {
+    "name": "empty",
+    "input": [],
+    "expected": {
+      "canonical_hex": "",
+      "qf_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  {
+    "name": "one_file_mtime_zero",
+    "input": [
+      {
+        "rel_path": "save.dat",
+        "size_bytes": 4,
+        "mtime_ms": 0
+      }
+    ],
+    "expected": {
+      "canonical_hex": "736176652e646174003400300a",
+      "qf_hash": "db8eeaf4ccbcf12aad18a10bb9605af6c9d9e77b48b99754a68efebf3de57e8d"
+    }
+  },
+  {
+    "name": "non_ascii_and_large_mtime",
+    "input": [
+      {
+        "rel_path": "日本語.sav",
+        "size_bytes": 7,
+        "mtime_ms": 4294967297
+      },
+      {
+        "rel_path": "é.sav",
+        "size_bytes": 3,
+        "mtime_ms": 0
+      }
+    ],
+    "expected": {
+      "canonical_hex": "c3a92e736176003300300ae697a5e69cace8aa9e2e736176003700343239343936373239370a",
+      "qf_hash": "9da1aa7e4e73285d7c69745ee602438c1628da2f08f04bfd228102b2c61c52df"
+    }
+  },
+  {
+    "name": "utf8_byte_order_and_negative_mtime",
+    "input": [
+      {
+        "rel_path": "a.sav",
+        "size_bytes": 2,
+        "mtime_ms": 12
+      },
+      {
+        "rel_path": "Z.sav",
+        "size_bytes": 1,
+        "mtime_ms": -5
+      }
+    ],
+    "expected": {
+      "canonical_hex": "5a2e7361760031002d350a612e73617600320031320a",
+      "qf_hash": "9a928e7aef7b7a41f2dfb35011fd243a5ac4f2f427e9191261553bfcf4145116"
+    }
+  }
+]

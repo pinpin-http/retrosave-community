@@ -1,0 +1,70 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+local.properties
+
+# Project-local development tools and state
+.tools/
+.android/
+.venv/
+.cache/
+.gradle/
+.gradle-user-home/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Android / Gradle
+**/.idea/
+**/.kotlin/
+**/build/
+*.iml
+captures/
+
+# Editors and OS
+.vscode/*
+!.vscode/settings.json
+.DS_Store
+Thumbs.db
+
+# Runtime logs and save-safety artifacts
+*.log
+*.tmp
+*.rsc-bak
+*.rsc-bak.*
+
+# Sauvegardes réelles tirées d'un appareil (jamais de vraie save en dépôt)
+.thor-backup/
+
+# Rapports d'architecture générés : la source Markdown fait foi, les rendus se
+# refont avec scripts/docs/render_architecture_report.py.
+docs/architecture/*.html
+docs/architecture/*.pdf
+
+# Artefacts LaTeX du dossier technique
+docs/dossier/*.pdf
+docs/dossier/*.aux
+docs/dossier/*.log
+docs/dossier/*.toc
+docs/dossier/*.lof
+docs/dossier/*.lot
+docs/dossier/*.out
+docs/dossier/*.fls
+docs/dossier/*.fdb_latexmk
+docs/dossier/*.synctex.gz
+
+# Signing keys are maintained outside the repository.
+*.jks
+*.keystore
+*.p12
+*.apk
+*.apk.idsig

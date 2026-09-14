@@ -1,0 +1,82 @@
+[
+  {
+    "name": "no_journal_leaves_the_pass_untouched",
+    "input": {
+      "journal": null,
+      "local_content_sha256": "3f1a2b8c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8"
+    },
+    "expected": "no_journal"
+  },
+  {
+    "name": "no_journal_ignores_an_absent_target",
+    "input": {
+      "journal": null,
+      "local_content_sha256": null
+    },
+    "expected": "no_journal"
+  },
+  {
+    "name": "write_landed_but_bookkeeping_missing_closes",
+    "input": {
+      "journal": "3f1a2b8c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8",
+      "local_content_sha256": "3f1a2b8c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8"
+    },
+    "expected": "close"
+  },
+  {
+    "name": "torn_content_is_reapplied",
+    "input": {
+      "journal": "3f1a2b8c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8",
+      "local_content_sha256": "9c7d0e1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5"
+    },
+    "expected": "reapply"
+  },
+  {
+    "name": "absent_target_is_reapplied",
+    "input": {
+      "journal": "3f1a2b8c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8",
+      "local_content_sha256": null
+    },
+    "expected": "reapply"
+  },
+  {
+    "name": "amputated_directory_unit_is_reapplied",
+    "input": {
+      "journal": "d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3",
+      "local_content_sha256": "0000aa1122334455667788990011223344556677889900112233445566778899"
+    },
+    "expected": "reapply"
+  },
+  {
+    "name": "case_difference_in_hash_is_not_a_match",
+    "input": {
+      "journal": "3F1A2B8C4D5E6F708192A3B4C5D6E7F8091A2B3C4D5E6F708192A3B4C5D6E7F8",
+      "local_content_sha256": "3f1a2b8c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8"
+    },
+    "expected": "reapply"
+  },
+  {
+    "name": "unreadable_target_is_reapplied",
+    "input": {
+      "journal": "d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3",
+      "local_content_sha256": null
+    },
+    "expected": "reapply"
+  },
+  {
+    "name": "malformed_journal_is_reapplied_even_with_readable_content",
+    "input": {
+      "journal": "malformed",
+      "local_content_sha256": "3f1a2b8c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8"
+    },
+    "expected": "reapply"
+  },
+  {
+    "name": "malformed_journal_with_absent_target_is_reapplied",
+    "input": {
+      "journal": "malformed",
+      "local_content_sha256": null
+    },
+    "expected": "reapply"
+  }
+]

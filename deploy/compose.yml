@@ -1,0 +1,79 @@
+name: retrosave-community
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: retrosave
+      POSTGRES_DB: retrosave
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run configure.py first}
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U retrosave -d retrosave']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  storage:
+    build: ./minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: retrosave
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_ACCESS_KEY:?Run configure.py first}
+      MINIO_BROWSER: 'off'
+    volumes:
+      - saves:/data
+    healthcheck:
+      test: [CMD, curl, -fsS, http://localhost:9000/minio/health/live]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  createbucket:
+    build:
+      context: ..
+      dockerfile: server/Dockerfile
+    env_file: ${RETROSAVE_ENV_FILE:-.env}
+    depends_on:
+      storage:
+        condition: service_healthy
+    command: [python, -m, app.storage_init]
+    restart: 'no'
+  server:
+    build:
+      context: ..
+      dockerfile: server/Dockerfile
+    restart: unless-stopped
+    env_file: ${RETROSAVE_ENV_FILE:-.env}
+    depends_on:
+      db:
+        condition: service_healthy
+      createbucket:
+        condition: service_completed_successfully
+    healthcheck:
+      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://localhost:8000/healthz", timeout=3)']
+      interval: 10s
+      timeout: 4s
+      retries: 15
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      API_DOMAIN: ${API_DOMAIN:?Run configure.py first}
+      STORAGE_DOMAIN: ${STORAGE_DOMAIN:?Run configure.py first}
+      ACME_EMAIL: ${ACME_EMAIL:?Run configure.py first}
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - certificates:/data
+      - caddyconfig:/config
+    depends_on:
+      server:
+        condition: service_healthy
+volumes:
+  dbdata:
+  saves:
+  certificates:
+  caddyconfig:

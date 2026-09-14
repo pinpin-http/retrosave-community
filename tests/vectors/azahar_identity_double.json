@@ -1,0 +1,52 @@
+[
+  {
+    "name": "azahar_double_identity_same_title_requires_choice",
+    "input": {
+      "active_identity": null,
+      "identities": [
+        {
+          "identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/11111111111111111111111111111111",
+          "latest_modified": 100,
+          "unit_keys": ["00125600"]
+        },
+        {
+          "identity": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/22222222222222222222222222222222",
+          "latest_modified": 200,
+          "unit_keys": ["00125600"]
+        }
+      ]
+    },
+    "expected": {
+      "status": "choice_required",
+      "active_identity": null,
+      "proposed_identity": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/22222222222222222222222222222222",
+      "ignored_identities": []
+    }
+  },
+  {
+    "name": "azahar_double_identity_explicit_choice_ignores_other",
+    "input": {
+      "active_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/11111111111111111111111111111111",
+      "identities": [
+        {
+          "identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/11111111111111111111111111111111",
+          "latest_modified": 100,
+          "unit_keys": ["00125600"]
+        },
+        {
+          "identity": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/22222222222222222222222222222222",
+          "latest_modified": 200,
+          "unit_keys": ["00125600"]
+        }
+      ]
+    },
+    "expected": {
+      "status": "selected",
+      "active_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/11111111111111111111111111111111",
+      "proposed_identity": null,
+      "ignored_identities": [
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/22222222222222222222222222222222"
+      ]
+    }
+  }
+]

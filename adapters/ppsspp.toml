@@ -1,0 +1,28 @@
+id = "ppsspp"
+name = "PPSSPP"
+process_names = ["PPSSPPWindows64.exe", "PPSSPPWindows.exe", "ppsspp", "PPSSPPSDL"]
+android_packages = ["org.ppsspp.ppsspp", "org.ppsspp.ppssppgold"]
+
+[roots]
+windows = ["%USERPROFILE%\\Documents\\PPSSPP\\PSP\\SAVEDATA"]
+linux = ["~/.config/ppsspp/PSP/SAVEDATA"]
+
+[roots.validate]
+markers_primary = []
+markers_secondary = []
+markers_secondary_min = 0
+
+[discovery]
+unit_type = "dir"
+pattern = "*"
+# Ces trois dossiers sont voisins de SAVEDATA et ne contiennent aucune
+# sauvegarde : PPSSPP_STATE porte des états de sauvegarde, GAME des exécutables
+# homebrew (interdits par I1) et SYSTEM la configuration de l'émulateur. Ils
+# étaient déjà exclus en dur par le client Python ; le manifeste le dit
+# désormais lui-même, pour qu'un moteur piloté par le manifeste protège autant.
+exclude = ["GAME", "SYSTEM", "PPSSPP_STATE"]
+max_depth = 3
+
+[identity]
+unit_key = "dirname"
+game_key = "serial9"

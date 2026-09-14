@@ -1,0 +1,18 @@
+id = "retroarch"
+name = "RetroArch"
+process_names = ["retroarch.exe", "retroarch"]
+android_packages = ["com.retroarch", "com.retroarch.aarch64"]
+
+[roots]
+windows = []
+linux = ["~/.config/retroarch/saves"]
+
+[discovery]
+unit_type = "file"
+pattern = "**/*.srm"
+exclude = ["**/.rsc-*"]
+max_depth = 3
+
+[identity]
+unit_key = "filename"
+game_key = "normalized_name"

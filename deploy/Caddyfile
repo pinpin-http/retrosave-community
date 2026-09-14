@@ -1,0 +1,10 @@
+{
+    email {$ACME_EMAIL}
+}
+{$API_DOMAIN} {
+    reverse_proxy server:8000
+}
+{$STORAGE_DOMAIN} {
+    # Conserver Host : il participe à la signature S3 remise aux clients.
+    reverse_proxy storage:9000
+}

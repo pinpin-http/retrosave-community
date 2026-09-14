@@ -1,0 +1,21 @@
+id = "melonds"
+name = "melonDS"
+process_names = ["melonDS.exe", "melonDS"]
+# Observé sur AYN Thor le 31/07/2026 : la variante double écran MelonDualDS
+# expose `me.magnum.melondualds`. Règle Q3 : l'identifiant constaté sur
+# appareil réel fait autorité et se place en tête.
+android_packages = ["me.magnum.melondualds", "me.magnum.melonds"]
+
+[roots]
+windows = []
+linux = []
+
+[discovery]
+unit_type = "file"
+pattern = "**/*.sav"
+exclude = ["**/*.ml*", "**/.rsc-*"]
+max_depth = 4
+
+[identity]
+unit_key = "filename"
+game_key = "normalized_name"

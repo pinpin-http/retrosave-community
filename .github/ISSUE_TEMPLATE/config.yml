@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Faille de sécurité
+    url: https://github.com/pinpin-http/retrosave-cloud/security/advisories/new
+    about: Ne l'ouvrez pas en public — passez par un avis de sécurité privé.

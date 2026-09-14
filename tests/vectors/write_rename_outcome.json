@@ -1,0 +1,37 @@
+[
+  {
+    "name": "exact_name_is_accepted",
+    "input": { "requested": "save0.bin", "obtained": "save0.bin" },
+    "expected": "accepted"
+  },
+  {
+    "name": "suffixed_name_is_deviated_not_success",
+    "input": { "requested": "save0.bin", "obtained": "save0 (1).bin" },
+    "expected": "deviated"
+  },
+  {
+    "name": "second_suffix_is_deviated",
+    "input": { "requested": "save0.bin", "obtained": "save0 (2).bin" },
+    "expected": "deviated"
+  },
+  {
+    "name": "metadata_suffix_before_extension_is_deviated",
+    "input": { "requested": "00000001.metadata", "obtained": "00000001 (1).metadata" },
+    "expected": "deviated"
+  },
+  {
+    "name": "null_result_is_refused",
+    "input": { "requested": "save0.bin", "obtained": null },
+    "expected": "refused"
+  },
+  {
+    "name": "case_difference_is_deviated",
+    "input": { "requested": "Save0.bin", "obtained": "save0.bin" },
+    "expected": "deviated"
+  },
+  {
+    "name": "unrelated_name_is_deviated",
+    "input": { "requested": "save0.bin", "obtained": "save0.bin.rsc-tmp" },
+    "expected": "deviated"
+  }
+]

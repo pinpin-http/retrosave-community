@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Icône vectorielle temporaire du POC : une disquette claire sur fond sombre.
+  Elle évite d'embarquer plusieurs PNG avant la phase de finition graphique.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#101820"
+        android:pathData="M4,4h40v40h-40z" />
+    <path
+        android:fillColor="#80CBC4"
+        android:pathData="M8,8h27l5,5v27h-32z" />
+    <path
+        android:fillColor="#102A43"
+        android:pathData="M14,8h18v12h-18z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M14,25h20v12h-20z" />
+    <path
+        android:fillColor="#102A43"
+        android:pathData="M18,28h12v6h-12z" />
+</vector>

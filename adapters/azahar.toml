@@ -1,0 +1,23 @@
+id = "azahar"
+name = "Azahar (3DS)"
+process_names = ["azahar.exe", "azahar", "azahar-qt"]
+android_packages = ["org.azahar_emu.azahar", "io.github.lime3ds.android"]
+
+[roots]
+windows = ["%APPDATA%\\Azahar"]
+linux = ["~/.local/share/azahar-emu"]
+
+[roots.validate]
+markers_primary = ["sdmc"]
+markers_secondary = ["config", "nand", "sysdata", "gpu_drivers", "log"]
+markers_secondary_min = 2
+
+[discovery]
+unit_type = "dir"
+pattern = "sdmc/Nintendo 3DS/*/*/title/00040000/*/data"
+exclude = []
+max_depth = 8
+
+[identity]
+unit_key = "path_segment:2"
+game_key = "prefix:3ds:"

@@ -1,0 +1,123 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  workflow_call:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: retrosave
+          POSTGRES_PASSWORD: retrosave
+          POSTGRES_DB: retrosave
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U retrosave"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      APP_ENV: dev
+      DATABASE_URL: postgresql+asyncpg://retrosave:retrosave@localhost:5432/retrosave
+      S3_ENDPOINT: http://localhost:9000
+      S3_REGION: auto
+      S3_BUCKET: retrosave-poc
+      S3_ACCESS_KEY_ID: retrosave
+      S3_SECRET_ACCESS_KEY: retrosave-dev
+      S3_FORCE_PATH_STYLE: "true"
+      # Base de service jetable, recréée à chaque job : voir server/tests/conftest.py.
+      RETROSAVE_TEST_DB: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Start MinIO
+        run: |
+          docker run --detach --name minio \
+            --publish 9000:9000 \
+            --env MINIO_ROOT_USER=retrosave \
+            --env MINIO_ROOT_PASSWORD=retrosave-dev \
+            quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z server /data
+          for attempt in {1..20}; do
+            if curl --fail --silent http://localhost:9000/minio/health/live; then
+              break
+            fi
+            sleep 1
+          done
+          curl --fail http://localhost:9000/minio/health/live
+          docker run --rm --network container:minio \
+            --entrypoint /bin/sh quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z \
+            -c "mc alias set local http://localhost:9000 retrosave retrosave-dev &&
+                mc mb -p local/retrosave-poc"
+      - name: Install workspace
+        run: uv sync --all-packages
+      - name: Verify server container lock
+        run: |
+          uv export --frozen --package retrosave-server --no-dev \
+            --no-emit-project --no-header \
+            --output-file /tmp/server-requirements.lock
+          diff --unified server/requirements.lock /tmp/server-requirements.lock
+      - name: Apply database migrations
+        working-directory: server
+        run: |
+          uv run alembic upgrade head
+          uv run alembic check
+      - name: Lint server
+        run: uv run ruff check server
+      - name: Test server
+        run: uv run pytest server/tests
+      - name: Audit Python dependencies
+        run: uv run pip-audit
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Install workspace for archive interop
+        run: uv sync --all-packages
+      - name: Test and build Android
+        run: |
+          chmod +x android/gradlew
+          android/gradlew -p android ktlintCheck testDebugUnitTest assembleDebug
+      - name: Test Python and Kotlin archive interoperability
+        run: uv run python scripts/testing/test_archive_interop.py
+
+  purity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check local documentation links
+        run: python3 scripts/testing/check_docs.py
+      - name: Check Android core purity
+        run: |
+          if grep -RnE "^import (android|androidx)\." \
+            android/app/src/main/kotlin/com/retrosave/core/; then
+            exit 1
+          fi

@@ -1,0 +1,27 @@
+[
+  {
+    "name": "remove_region_and_dump_tags",
+    "input": "Pokemon Platinum Version (USA) [b].nds",
+    "expected": "pokemon platinum version"
+  },
+  {
+    "name": "underscores_and_multiple_tags",
+    "input": "Professor_Layton_[Europe] (En,Fr).sav",
+    "expected": "professor layton"
+  },
+  {
+    "name": "compact_mixed_whitespace",
+    "input": "  The__World  Ends [Rev 1] With_You (USA).SAV",
+    "expected": "the world ends with you"
+  },
+  {
+    "name": "preserve_non_ascii_letters",
+    "input": "Pokémon_Édition_Noire_(France).sav",
+    "expected": "pokémon édition noire"
+  },
+  {
+    "name": "remove_only_last_extension",
+    "input": "game.with.dots [verified].sav",
+    "expected": "game.with.dots"
+  }
+]

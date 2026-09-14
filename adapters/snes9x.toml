@@ -1,0 +1,40 @@
+# Snes9x — Super Nintendo. Vérifié sur les sources officielles (snes9xgit/snes9x,
+# version 1.63) et non déduit d'un forum :
+#
+#   - la sauvegarde de pile est un fichier `.srm` écrit dans `SRAM_DIR`
+#     (`memmap.cpp`, `S9xGetFilename(".srm", SRAM_DIR)`) ;
+#   - `SRAMDirectory` est VIDE par défaut (`gtk/src/gtk_config.cpp`), et
+#     `S9xGetDirectory` retombe alors sur « le dossier de la ROM »
+#     (`gtk/src/gtk_file.cpp`). C'est donc l'utilisateur qui désigne le dossier,
+#     comme pour melonDS et mGBA : aucun chemin n'est proposé ici plutôt qu'un
+#     chemin faux ;
+#   - les états de sauvegarde sont `.sst` et `.000` à `.009`, plus `.undo`
+#     (`gtk/src/gtk_s9xwindow.cpp`). Ce sont des instantanés de RAM liés à une
+#     version de l'émulateur, pas une progression : exclus.
+#
+# Les `.rtc` (horloge temps réel de quelques jeux) ne sont pas couverts. Le
+# connecteur les laisse intacts tant que leur portabilité n'est pas démontrée.
+#
+# Les ROMs voisines (`.sfc`, `.smc`, `.fig`, `.swc`) ne sont jamais ouvertes :
+# le moteur ne lit que ce que ce manifeste désigne, et l'invariant I1 refuse de
+# toute façon ces extensions au niveau de l'unité.
+id = "snes9x"
+name = "Snes9x (Super Nintendo)"
+process_names = ["snes9x.exe", "snes9x_x64.exe", "snes9x-gtk", "snes9x"]
+# Aucun paquet Android officiel : les portages répandus sont des forks tiers.
+# Un identifiant inventé ferait échouer la détection de session en silence.
+android_packages = []
+
+[roots]
+windows = []
+linux = []
+
+[discovery]
+unit_type = "file"
+pattern = "**/*.srm"
+exclude = ["**/*.sst", "**/*.[0-9][0-9][0-9]", "**/*.undo", "**/*.cht", "**/*.ips", "**/*.bps", "**/*.ups", "**/*.rtc", "**/.rsc-*"]
+max_depth = 4
+
+[identity]
+unit_key = "filename"
+game_key = "normalized_name"

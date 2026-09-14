@@ -1,0 +1,103 @@
+{
+  "stability": [
+    {
+      "name": "stable_at_exact_ten_second_boundary",
+      "input": {
+        "state": "active",
+        "observed_qf_hash": "same",
+        "stable_qf_hash": "same",
+        "stable_since_ms": 1000,
+        "now_ms": 11000,
+        "stabilization_ms": 10000,
+        "emulator_running": false
+      },
+      "expected": true
+    },
+    {
+      "name": "not_stable_one_millisecond_before_boundary",
+      "input": {
+        "state": "active",
+        "observed_qf_hash": "same",
+        "stable_qf_hash": "same",
+        "stable_since_ms": 1000,
+        "now_ms": 10999,
+        "stabilization_ms": 10000,
+        "emulator_running": false
+      },
+      "expected": false
+    },
+    {
+      "name": "not_stable_when_quick_fingerprint_changed",
+      "input": {
+        "state": "active",
+        "observed_qf_hash": "new",
+        "stable_qf_hash": "old",
+        "stable_since_ms": 1000,
+        "now_ms": 20000,
+        "stabilization_ms": 10000,
+        "emulator_running": false
+      },
+      "expected": false
+    },
+    {
+      "name": "not_stable_when_paused",
+      "input": {
+        "state": "paused",
+        "observed_qf_hash": "same",
+        "stable_qf_hash": "same",
+        "stable_since_ms": 1000,
+        "now_ms": 20000,
+        "stabilization_ms": 10000,
+        "emulator_running": false
+      },
+      "expected": false
+    },
+    {
+      "name": "not_stable_while_desktop_emulator_runs",
+      "input": {
+        "state": "active",
+        "observed_qf_hash": "same",
+        "stable_qf_hash": "same",
+        "stable_since_ms": 1000,
+        "now_ms": 20000,
+        "stabilization_ms": 10000,
+        "emulator_running": true
+      },
+      "expected": false
+    }
+  ],
+  "missing_pause": [
+    {
+      "name": "nine_missing_units_do_not_pause",
+      "input": {
+        "missing_count": 9,
+        "threshold": 10
+      },
+      "expected": false
+    },
+    {
+      "name": "ten_missing_units_pause",
+      "input": {
+        "missing_count": 10,
+        "threshold": 10
+      },
+      "expected": true
+    }
+  ],
+  "apply_emulator_guard": [
+    {
+      "name": "running_emulator_defers_remote_apply",
+      "input": {
+        "emulator_running": true
+      },
+      "expected": false
+    },
+    {
+      "name": "closed_emulator_allows_remaining_apply_checks",
+      "input": {
+        "emulator_running": false
+      },
+      "expected": true
+    }
+  ]
+}

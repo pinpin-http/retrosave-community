@@ -1,0 +1,66 @@
+[
+  {
+    "name": "single_matching_rom_in_root_places_beside_it",
+    "input": {
+      "unit_key": "Pokemon Platinum.sav",
+      "rom_rel_paths": ["Pokemon Platinum.nds"]
+    },
+    "expected": ""
+  },
+  {
+    "name": "single_matching_rom_in_subfolder_places_beside_it",
+    "input": {
+      "unit_key": "Pokemon Platinum.sav",
+      "rom_rel_paths": ["nds/rpg/Pokemon Platinum.nds", "nds/rpg/Other Game.nds"]
+    },
+    "expected": "nds/rpg"
+  },
+  {
+    "name": "two_matching_roms_leave_the_unit_to_place",
+    "input": {
+      "unit_key": "same.sav",
+      "rom_rel_paths": ["a/same.nds", "b/same.nds"]
+    },
+    "expected": null
+  },
+  {
+    "name": "no_matching_rom_leaves_the_unit_to_place",
+    "input": {
+      "unit_key": "Orphan Save.sav",
+      "rom_rel_paths": ["nds/Another Game.nds"]
+    },
+    "expected": null
+  },
+  {
+    "name": "extension_case_is_ignored_but_stem_is_exact",
+    "input": {
+      "unit_key": "Castlevania.sav",
+      "rom_rel_paths": ["Castlevania.NDS"]
+    },
+    "expected": ""
+  },
+  {
+    "name": "different_stem_case_is_not_a_match",
+    "input": {
+      "unit_key": "Castlevania.sav",
+      "rom_rel_paths": ["castlevania.nds"]
+    },
+    "expected": null
+  },
+  {
+    "name": "uppercase_sav_unit_key_matches_its_stem",
+    "input": {
+      "unit_key": "GAME.SAV",
+      "rom_rel_paths": ["roms/GAME.nds"]
+    },
+    "expected": "roms"
+  },
+  {
+    "name": "non_nds_neighbour_never_matches",
+    "input": {
+      "unit_key": "Pokemon Platinum.sav",
+      "rom_rel_paths": ["Pokemon Platinum.zip", "Pokemon Platinum.7z"]
+    },
+    "expected": null
+  }
+]

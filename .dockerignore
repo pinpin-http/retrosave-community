@@ -1,0 +1,12 @@
+# AD-32 : le contexte de build est la racine du monorepo, pour que les
+# artefacts partagés soient copiables par construction. Sans cette liste, chaque
+# build embarquerait tout le dépôt — fixtures d'adaptateurs, sources Android,
+# historique git. C'est le seul coût de ce choix, et il se paie une fois.
+*
+!server/**
+!VERSION
+
+# Rien de ce qui suit n'a sa place dans une image, même sous `server/`.
+server/**/__pycache__/**
+server/**/*.pyc
+server/.pytest_cache/**

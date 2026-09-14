@@ -1,0 +1,26 @@
+[project]
+name = "retrosave-server"
+version = "0.1.0"
+description = "RetroSave Community FastAPI server"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "alembic",
+    "apscheduler",
+    "asyncpg",
+    "boto3",
+    "fastapi",
+    # Vérifie les JWT d'un fournisseur d'identité optionnel. PyJWT est
+    # la bibliothèque de référence, sans dépendance transitive lourde ; elle
+    # n'est utilisée QUE pour vérifier une signature et des bornes de validité.
+    "pyjwt[crypto]",
+    "pydantic-settings",
+    "sqlalchemy[asyncio]",
+    "uvicorn",
+]
+
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]

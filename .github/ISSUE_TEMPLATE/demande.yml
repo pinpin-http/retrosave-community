@@ -1,0 +1,36 @@
+name: Proposer une évolution
+description: Un connecteur d'émulateur, une amélioration, une idée
+labels: ["évolution"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Un nouveau connecteur d'émulateur ne demande pas d'écrire de code** :
+        c'est un fichier TOML, une fixture et un test. Si vous voulez le faire
+        vous-même, tout est dans
+        [le guide](../blob/main/docs/guides/AJOUTER_UN_EMULATEUR.md).
+  - type: textarea
+    id: besoin
+    attributes:
+      label: Le besoin
+      description: Décrivez la situation, pas la solution — on trouvera la solution ensemble.
+      placeholder: >
+        Je joue à des jeux Dreamcast sur Flycast et je dois copier mes VMU à la
+        main entre mon PC et mon Steam Deck.
+    validations:
+      required: true
+  - type: input
+    id: emulateur
+    attributes:
+      label: Émulateur concerné, si c'est un connecteur
+      placeholder: "Flycast"
+  - type: textarea
+    id: chemins
+    attributes:
+      label: Où vivent les sauvegardes, et à quoi elles ressemblent
+      description: >
+        Les chemins sur votre système et les extensions concernées. **Ne joignez
+        pas de ROM** — RetroSave n'en lit jamais, et le dépôt n'en accepte pas.
+      placeholder: |
+        Linux : ~/.local/share/flycast/vmu_save_A1.bin
+        Un fichier par port de VMU.

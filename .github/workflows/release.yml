@@ -1,0 +1,153 @@
+name: Community release
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (for example v0.1.0-alpha.1)'
+        required: true
+        default: v0.1.0-alpha.1
+permissions:
+  contents: read
+concurrency:
+  group: community-release
+  cancel-in-progress: false
+jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
+  desktop:
+    uses: ./.github/workflows/desktop.yml
+  windows:
+    needs: desktop
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: retrosave-desktop-tree-windows-2022
+          path: tree
+      - name: Package Windows installer and portable archive
+        shell: pwsh
+        run: |
+          $version = (Get-Content VERSION).Trim()
+          Copy-Item LICENSE, NOTICE.md tree
+          # Qt déploie ses DLL ; le runtime C++ est une dépendance distincte.
+          # Le copier rend l'archive portable utilisable sans Visual Studio ni
+          # installation préalable du redistribuable MSVC.
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $visualStudio = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Redist.14.Latest -property installationPath
+          $runtime = Get-ChildItem "$visualStudio\VC\Redist\MSVC" -Recurse -File -Filter vcruntime140.dll |
+            Where-Object { $_.FullName -match '\\x64\\' } |
+            Select-Object -First 1
+          if ($null -eq $runtime) { throw 'MSVC redistributable not found' }
+          Copy-Item "$($runtime.DirectoryName)\*.dll" tree
+          New-Item -ItemType Directory -Force dist | Out-Null
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=$version" "/DSourceDir=$pwd\tree" "/DOutputDir=$pwd\dist" scripts/release/windows.iss
+          if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed' }
+          Compress-Archive -Path tree/* -DestinationPath "dist/RetroSave-Community-$version-windows-x64-portable.zip"
+      - name: Install and smoke-test the installed application
+        timeout-minutes: 5
+        shell: pwsh
+        run: |
+          $installer = (Get-ChildItem dist/*setup.exe).FullName
+          $destination = "$env:RUNNER_TEMP/installed-community"
+          Write-Host 'Installing package'
+          $process = Start-Process $installer -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/DIR=$destination" -PassThru
+          if (-not $process.WaitForExit(120000)) { Stop-Process -Id $process.Id -Force; throw 'Installation timed out' }
+          if ($process.ExitCode -ne 0) { throw 'Installation failed' }
+          # Retirer le SDK du PATH pour vérifier les DLL réellement distribuées.
+          $env:PATH = "$env:SystemRoot\System32;$env:SystemRoot"
+          Write-Host 'Starting installed agent'
+          $process = Start-Process "$destination/retrosave-agent.exe" -ArgumentList '--version' -PassThru
+          if (-not $process.WaitForExit(30000)) { Stop-Process -Id $process.Id -Force; throw 'Installed agent version check timed out' }
+          if ($process.ExitCode -ne 0) { throw "Installed agent failed with $($process.ExitCode)" }
+          # Une session Actions ne constitue pas une recette graphique Windows.
+          # Vérifier ici que l'installateur a conservé les composants requis ;
+          # les parcours QML sont exercés sur Linux et la recette Windows se
+          # fait sur un poste utilisateur (docs/guides/RUNBOOK.md).
+          $desktopFiles = @(
+            'retrosave-desktop.exe',
+            'Qt6Widgets.dll',
+            'plugins/platforms/qwindows.dll',
+            'qml/QtQuick/Controls/Basic/qmldir'
+          )
+          foreach ($file in $desktopFiles) {
+            if (-not (Test-Path (Join-Path $destination $file))) {
+              throw "Installed desktop is missing $file"
+            }
+          }
+          Write-Host 'Uninstalling package'
+          $process = Start-Process "$destination/unins000.exe" -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART' -PassThru
+          if (-not $process.WaitForExit(120000)) { Stop-Process -Id $process.Id -Force; throw 'Uninstall timed out' }
+          if ($process.ExitCode -ne 0) { throw 'Uninstall failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-windows
+          path: dist/*
+  linux:
+    needs: desktop
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: retrosave-desktop-tree-ubuntu-24.04
+          path: tree
+      - name: Package Linux
+        run: |
+          cp LICENSE NOTICE.md tree/
+          chmod +x tree/bin/retrosave-*
+          mkdir dist
+          tar -czf "dist/RetroSave-Community-$(cat VERSION)-linux-x64.tar.gz" -C tree .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-linux
+          path: dist/*
+  android:
+    needs: checks
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build release APK
+        run: android/gradlew -p android assembleRelease
+      - name: Sign and verify APK
+        env:
+          RSC_KEYSTORE_BASE64: ${{ secrets.RSC_KEYSTORE_BASE64 }}
+          RSC_KEYSTORE_PASSWORD: ${{ secrets.RSC_KEYSTORE_PASSWORD }}
+        run: |
+          set -eu
+          umask 077
+          export RSC_KEYSTORE="$RUNNER_TEMP/community-release.p12"
+          trap 'rm -f "$RSC_KEYSTORE"' EXIT
+          printf '%s' "$RSC_KEYSTORE_BASE64" | base64 --decode > "$RSC_KEYSTORE"
+          python3 scripts/release/sign_android.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-android
+          path: dist/*.apk
+  draft:
+    needs: [checks, desktop, windows, linux, android]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: dist
+          merge-multiple: true
+      - name: Create verified draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          python3 -c 'import os,re,pathlib; tag=os.environ["RELEASE_TAG"]; version=pathlib.Path("VERSION").read_text().strip(); assert re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+(?:-[a-zA-Z0-9.]+)?", tag) and tag.startswith(f"v{version}")'
+          (cd dist && sha256sum * > SHA256SUMS.txt)
+          gh release create "$RELEASE_TAG" dist/* --draft --prerelease \
+            --target "$GITHUB_SHA" --title "RetroSave Community $RELEASE_TAG" \
+            --notes-file docs/RELEASE_NOTES.md

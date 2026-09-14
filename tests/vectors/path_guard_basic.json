@@ -1,0 +1,16 @@
+[
+  { "name": "plain_name_is_ok", "input": { "rel_path": "save0.bin" }, "expected": "ok" },
+  { "name": "nested_name_is_ok", "input": { "rel_path": "00000001/save0.bin" }, "expected": "ok" },
+  { "name": "name_with_spaces_and_parens_is_ok", "input": { "rel_path": "DATA (1).BIN" }, "expected": "ok" },
+  { "name": "non_ascii_name_is_ok", "input": { "rel_path": "Pokémon_日本語.sav" }, "expected": "ok" },
+  { "name": "dot_segment_alone_is_ok", "input": { "rel_path": "a/./b.bin" }, "expected": "ok" },
+  { "name": "parent_segment_is_rejected", "input": { "rel_path": "../escape.bin" }, "expected": "reject" },
+  { "name": "nested_parent_segment_is_rejected", "input": { "rel_path": "a/../../escape.bin" }, "expected": "reject" },
+  { "name": "trailing_parent_segment_is_rejected", "input": { "rel_path": "a/b/.." }, "expected": "reject" },
+  { "name": "posix_absolute_is_rejected", "input": { "rel_path": "/etc/passwd" }, "expected": "reject" },
+  { "name": "windows_drive_absolute_is_rejected", "input": { "rel_path": "C:/Windows/system32" }, "expected": "reject" },
+  { "name": "windows_backslash_absolute_is_rejected", "input": { "rel_path": "\\\\server\\share\\x" }, "expected": "reject" },
+  { "name": "backslash_parent_segment_is_rejected", "input": { "rel_path": "a\\..\\escape.bin" }, "expected": "reject" },
+  { "name": "empty_path_is_rejected", "input": { "rel_path": "" }, "expected": "reject" },
+  { "name": "name_containing_dotdot_is_ok", "input": { "rel_path": "save..bin" }, "expected": "ok" }
+]

@@ -1,0 +1,46 @@
+[project]
+name = "retrosave-workspace"
+version = "0.0.0"
+description = "RetroSave Community monorepo development workspace"
+requires-python = ">=3.12,<3.13"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "httpx",
+    "pip-audit",
+    "pytest",
+    "pytest-asyncio",
+    "ruff",
+    # Utilisé par les bancs (`scripts/testing/save_format.py`) pour lire et
+    # écrire le format d'archive sans dépendre du produit.
+    "zstandard",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = [
+    "server",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+extend-exclude = [
+    ".android",
+    ".cache",
+    ".gradle-user-home",
+    ".tools",
+    ".venv",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+testpaths = [
+    "server/tests",
+    "tests",
+]

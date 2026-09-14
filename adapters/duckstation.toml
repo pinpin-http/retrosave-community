@@ -1,0 +1,32 @@
+# DuckStation — PlayStation. Une carte mémoire `.mcd` par jeu quand l'option
+# « carte par jeu » est active (le défaut), sinon des cartes partagées.
+#
+# Une carte partagée reste une unité valide : elle porte les sauvegardes de
+# plusieurs jeux, et c'est le fichier entier qui est versionné. C'est le
+# comportement attendu — on ne découpe jamais le contenu d'une carte.
+id = "duckstation"
+name = "DuckStation (PlayStation)"
+# Le lecteur de manifestes exige un tableau sur UNE ligne : il refuse ce qu'il
+# ne comprend pas plutôt que de deviner, et c'est ce qui garantit qu'un
+# manifeste douteux ne passe jamais en silence.
+process_names = ["duckstation-qt-x64-ReleaseLTCG.exe", "duckstation-qt.exe", "duckstation-qt", "duckstation-nogui"]
+android_packages = ["com.github.stenzek.duckstation"]
+
+[roots]
+windows = ["%USERPROFILE%\\Documents\\DuckStation"]
+linux = ["~/.local/share/duckstation"]
+
+[roots.validate]
+markers_primary = ["memcards"]
+markers_secondary = ["settings.ini", "cache", "covers", "savestates"]
+markers_secondary_min = 2
+
+[discovery]
+unit_type = "file"
+pattern = "memcards/*.mcd"
+exclude = ["**/.rsc-*"]
+max_depth = 2
+
+[identity]
+unit_key = "filename"
+game_key = "normalized_name"

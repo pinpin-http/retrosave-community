@@ -1,0 +1,82 @@
+[
+  {
+    "name": "a_client_adopts_the_real_title_the_server_resolved",
+    "input": {
+      "stored_label": "000f3000",
+      "stored_source": "auto",
+      "incoming_label": "Professor Layton and the Azran Legacy",
+      "unit_key": "000f3000"
+    },
+    "expected": "Professor Layton and the Azran Legacy"
+  },
+  {
+    "name": "a_manual_rename_is_never_overwritten",
+    "input": {
+      "stored_label": "Ma partie de Layton",
+      "stored_source": "user",
+      "incoming_label": "Professor Layton and the Azran Legacy",
+      "unit_key": "000f3000"
+    },
+    "expected": null
+  },
+  {
+    "name": "a_resolved_title_is_not_replaced_by_a_raw_identifier",
+    "input": {
+      "stored_label": "Professor Layton and the Azran Legacy",
+      "stored_source": "auto",
+      "incoming_label": "000f3000",
+      "unit_key": "000f3000"
+    },
+    "expected": null
+  },
+  {
+    "name": "an_identical_label_changes_nothing",
+    "input": {
+      "stored_label": "LocoRoco",
+      "stored_source": "auto",
+      "incoming_label": "LocoRoco",
+      "unit_key": "UCET00357_GameData0"
+    },
+    "expected": null
+  },
+  {
+    "name": "an_empty_incoming_label_changes_nothing",
+    "input": {
+      "stored_label": "000f3000",
+      "stored_source": "auto",
+      "incoming_label": "",
+      "unit_key": "000f3000"
+    },
+    "expected": null
+  },
+  {
+    "name": "a_serial_is_replaced_by_the_title_read_from_the_save",
+    "input": {
+      "stored_label": "UCET00357",
+      "stored_source": "auto",
+      "incoming_label": "LocoRoco",
+      "unit_key": "UCET00357_GameData0"
+    },
+    "expected": "LocoRoco"
+  },
+  {
+    "name": "a_cleaned_filename_is_an_improvement_not_a_regression",
+    "input": {
+      "stored_label": "Super Mario 64 DS",
+      "stored_source": "auto",
+      "incoming_label": "Super Mario 64 DS (Europe)",
+      "unit_key": "Super Mario 64 DS (Europe) (En,Fr,De,Es,It).sav"
+    },
+    "expected": "Super Mario 64 DS (Europe)"
+  },
+  {
+    "name": "two_raw_labels_still_move_forward",
+    "input": {
+      "stored_label": "ULUS10041",
+      "stored_source": "auto",
+      "incoming_label": "ULUS10041GAME",
+      "unit_key": "ULUS10041GAMEDATA"
+    },
+    "expected": "ULUS10041GAME"
+  }
+]

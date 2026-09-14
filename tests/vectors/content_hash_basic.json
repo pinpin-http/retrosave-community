@@ -1,0 +1,40 @@
+[
+  {
+    "name": "content_hash_single_file",
+    "input": {
+      "unit_type": "file",
+      "files": [
+        {
+          "rel_path": "save.bin",
+          "content_base64": "aGVsbG8="
+        }
+      ]
+    },
+    "expected": "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+  },
+  {
+    "name": "content_hash_directory_utf8_byte_order",
+    "input": {
+      "unit_type": "dir",
+      "files": [
+        {
+          "rel_path": "b.dat",
+          "content_base64": "YmV0YQ=="
+        },
+        {
+          "rel_path": "a/é.dat",
+          "content_base64": "w6l0w6k="
+        }
+      ]
+    },
+    "expected": "9c6ddeca1cc0a4ffdf1845805938e42642750450f036cf6be8d1c83c468853f8"
+  },
+  {
+    "name": "content_hash_empty_directory",
+    "input": {
+      "unit_type": "dir",
+      "files": []
+    },
+    "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

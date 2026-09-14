@@ -1,0 +1,85 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: retrosave
+      POSTGRES_PASSWORD: retrosave
+      POSTGRES_DB: retrosave
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U retrosave"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Les clients hors Docker utilisent S3_PUBLIC_ENDPOINT avec l'IP LAN du PC
+  # (AD-25) ; le port 9000 publié ci-dessous reste donc obligatoire en dev.
+  minio:
+    build: ./deploy/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: retrosave
+      MINIO_ROOT_PASSWORD: retrosave-dev
+    ports:
+      - "9000:9000"
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  createbucket:
+    image: quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "mc alias set local http://minio:9000 retrosave retrosave-dev &&
+                  mc mb --ignore-existing local/retrosave-poc"
+
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+      createbucket:
+        condition: service_completed_successfully
+    ports:
+      - "8000:8000"
+    command: >
+      /bin/sh -c "alembic upgrade head &&
+                  uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    volumes:
+      - ./server:/code
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          import urllib.request;
+          urllib.request.urlopen("http://localhost:8000/healthz", timeout=3)
+      interval: 5s
+      timeout: 4s
+      retries: 12
+
+  adminer:
+    image: adminer:latest
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "127.0.0.1:8080:8080"
+
+volumes:
+  dbdata: {}
+  miniodata: {}

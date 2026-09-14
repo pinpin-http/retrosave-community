@@ -1,0 +1,112 @@
+[
+  {
+    "name": "region_and_dump_tags_removed_case_preserved",
+    "input": "Pokemon_Platinum_Version_(USA)_[!].sav",
+    "expected": "Pokemon Platinum Version"
+  },
+  {
+    "name": "europe_tag_and_languages",
+    "input": "Professor_Layton_[Europe] (En,Fr).sav",
+    "expected": "Professor Layton"
+  },
+  {
+    "name": "underscores_become_spaces",
+    "input": "Final_Fantasy_Tactics.srm",
+    "expected": "Final Fantasy Tactics"
+  },
+  {
+    "name": "dots_inside_the_name_become_spaces",
+    "input": "Mario.Kart.DS.sav",
+    "expected": "Mario Kart DS"
+  },
+  {
+    "name": "mixed_whitespace_is_compacted",
+    "input": "  The__World  Ends With_You (USA).SAV",
+    "expected": "The World Ends With You"
+  },
+  {
+    "name": "no_extension_at_all",
+    "input": "Chrono Trigger",
+    "expected": "Chrono Trigger"
+  },
+  {
+    "name": "uppercase_is_kept",
+    "input": "METAL GEAR SOLID (USA).sav",
+    "expected": "METAL GEAR SOLID"
+  },
+  {
+    "name": "accents_are_kept_untouched",
+    "input": "Pokémon_Édition_Noire_(France).sav",
+    "expected": "Pokémon Édition Noire"
+  },
+  {
+    "name": "japanese_title_is_left_alone",
+    "input": "ファイナルファンタジー.sav",
+    "expected": "ファイナルファンタジー"
+  },
+  {
+    "name": "an_unknown_parenthetical_is_part_of_the_title",
+    "input": "Tony Hawk's Underground 2 (Remix).sav",
+    "expected": "Tony Hawk's Underground 2 (Remix)"
+  },
+  {
+    "name": "a_subtitle_in_brackets_is_kept_when_it_is_not_a_dump_tag",
+    "input": "Zelda [Master Quest].sav",
+    "expected": "Zelda [Master Quest]"
+  },
+  {
+    "name": "dump_flag_alone",
+    "input": "Sonic [!].srm",
+    "expected": "Sonic"
+  },
+  {
+    "name": "bad_dump_flag",
+    "input": "Sonic [b].srm",
+    "expected": "Sonic"
+  },
+  {
+    "name": "fixed_and_translated_flags",
+    "input": "Sonic [f1][T+Fre].srm",
+    "expected": "Sonic"
+  },
+  {
+    "name": "revision_tag",
+    "input": "Street Fighter (Rev 1).srm",
+    "expected": "Street Fighter"
+  },
+  {
+    "name": "multi_region_tag",
+    "input": "Tekken (Europe, Australia).srm",
+    "expected": "Tekken"
+  },
+  {
+    "name": "proto_and_beta",
+    "input": "Starfox (Proto) (Beta).srm",
+    "expected": "Starfox"
+  },
+  {
+    "name": "a_name_made_only_of_tags_falls_back_to_the_raw_stem",
+    "input": "(USA) [!].sav",
+    "expected": "(USA) [!]"
+  },
+  {
+    "name": "empty_input_stays_empty",
+    "input": "",
+    "expected": ""
+  },
+  {
+    "name": "a_leading_dot_is_not_an_extension_to_strip",
+    "input": ".sav",
+    "expected": "sav"
+  },
+  {
+    "name": "dotfile_keeps_its_name",
+    "input": ".nomedia",
+    "expected": "nomedia"
+  },
+  {
+    "name": "trailing_separators_are_trimmed",
+    "input": "Metroid_-_Zero_Mission_.sav",
+    "expected": "Metroid - Zero Mission"
+  }
+]
